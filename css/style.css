@@ -1,0 +1,65 @@
+:root {
+  --bg: #0f1420; --panel: #171e2e; --panel2: #1e2739; --fg: #e6eaf2; --muted: #93a0b8; --border: #2c3850;
+  --accent: #5aa9ff; --ok: #3ccf8e; --bad: #ff6b6b; --warn: #ffc857; --trap: #ff9f43;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg: #f5f7fb; --panel: #ffffff; --panel2: #eef2f8; --fg: #1b2333; --muted: #5d6a82; --border: #d6dde9; --accent: #1d6fd8; --ok: #12965c; --bad: #d33b3b; --warn: #b7860b; --trap: #c46210; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; background: var(--bg); color: var(--fg); }
+header { position: sticky; top: 0; z-index: 10; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 8px 18px; flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav button { background: none; border: 1px solid transparent; color: var(--muted); padding: 6px 11px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+nav button:hover { color: var(--fg); border-color: var(--border); }
+nav button.active { color: var(--fg); background: var(--panel2); border-color: var(--border); }
+#progress { margin-left: auto; font-size: 13px; color: var(--muted); }
+main { max-width: 1050px; margin: 0 auto; padding: 22px 18px 80px; }
+h2 { margin: 6px 0 14px; font-size: 22px; }
+h3 { margin: 22px 0 8px; font-size: 17px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+.card.tight { padding: 10px 14px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); margin-right: 4px; }
+.pill.kf { color: var(--accent); border-color: var(--accent); }
+.pill.ekf { color: var(--warn); border-color: var(--warn); }
+.pill.th { color: var(--ok); border-color: var(--ok); }
+.trap { border-left: 4px solid var(--trap); background: color-mix(in srgb, var(--trap) 9%, transparent); padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+.key { border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+.good { border-left: 4px solid var(--ok); background: color-mix(in srgb, var(--ok) 9%, transparent); padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+button.btn { background: var(--accent); color: white; border: 0; border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 14px; margin: 4px 6px 4px 0; }
+button.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+button.btn.ok { background: var(--ok); } button.btn.bad { background: var(--bad); }
+button.btn:disabled { opacity: .45; cursor: default; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--border); padding: 7px 8px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+ol.recipe { counter-reset: s; list-style: none; padding: 0; }
+ol.recipe > li { counter-increment: s; position: relative; padding: 10px 12px 10px 52px; margin: 8px 0; background: var(--panel2); border-radius: 10px; }
+ol.recipe > li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+.step { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0; background: var(--panel2); }
+.step.locked { opacity: .45; }
+.fields { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 8px 0; }
+.field { display: flex; align-items: center; gap: 6px; }
+.field input { width: 92px; padding: 5px 7px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--fg); font: 14px ui-monospace, Menlo, monospace; }
+.field input.ok { border-color: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 35%, transparent); }
+.field input.bad { border-color: var(--bad); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bad) 35%, transparent); }
+.sol { margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: var(--panel); border: 1px dashed var(--border); overflow-x: auto; }
+.hint { margin-top: 8px; padding: 6px 12px; border-radius: 8px; background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.flash { min-height: 190px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; font-size: 17px; }
+.flash .back { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 15px; text-align: left; }
+.bar { height: 8px; border-radius: 99px; background: var(--panel2); overflow: hidden; margin: 6px 0; }
+.bar > div { height: 100%; background: var(--ok); }
+.opt { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--fg); cursor: pointer; font-size: 14px; }
+.opt.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.opt.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 15%, transparent); }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+select { padding: 6px 8px; border-radius: 8px; background: var(--panel2); color: var(--fg); border: 1px solid var(--border); font-size: 14px; }
+.exq summary { cursor: pointer; font-weight: 600; }
+.exq[open] summary { margin-bottom: 8px; }
+kbd { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 12px; background: var(--panel2); }
+.flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0; }
+.flow .box { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+.flow .arr { color: var(--muted); }
