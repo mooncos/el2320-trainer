@@ -62,7 +62,7 @@ function genPF_Uniform() {
     const kw = k === 2 ? "square" : "cube";
     const statement = `For your sampling steps use this list of numbers drawn from $U(0,1)$, <b>in the order that samples are asked for</b>: ${uList(us)}.<br>
       You monitor the output power $X_t$ of a wind farm and the wind speed $W_t$, and estimate $p(X_t,W_t)$ with a particle filter with <b>three particles</b>.
-      The wind speed is measured, $Z_t$, with an unbiased instrument whose reading is <b>uniformly distributed around the true wind speed $\\pm${a.dec()}</b> m/s.
+      The wind speed is measured, $Z_t$, with an unbiased instrument whose reading is <b>uniformly distributed around the true wind speed $\\pm${a.dec()}$</b> m/s.
       Between measurements the wind speed is uniformly distributed around the previous wind speed $\\pm${b.dec()}$ m/s.
       The output power is the ${kw} of the wind speed, $W_t^${k}$, with uniformly distributed noise over a range $\\pm${d.dec()}$ (no inertia: independent of $X_{t-1}$).
       <br>(a) Write the measurement and dynamic models for $W_t$. (b) At $t=0$ you measure $Z_0=${z0.dec()}$; draw 3 samples $w_0^{(i)}$ assuming an uninformed prior.
