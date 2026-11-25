@@ -41,7 +41,7 @@ const recipe = R`
 <h2>🧭 La receta (vale para TODAS las preguntas de PF 2018-2026)</h2>
 <ol class="recipe">
 <li><b>Paso 0 — Escribe los modelos como pdf con soporte Y su CDF</b> (1p casi gratis; nov-2024 (a)).
- $$p(z_t\mid w_t)=\begin{cases}\tfrac{1}{2a}&z_t\in(w_t-a,\,w_t+a)\\0&\text{else}\end{cases}\qquad P(Z_t<z\mid w_t)=\tfrac{z-w_t+a}{2a}$$
+ $$p(z_t\mid w_t)=\begin{cases}\tfrac{1}{2a}&z_t\in(w_t-a,\,w_t+a)\\0&\text{else}\end{cases}\qquad P(Z_t\lt z\mid w_t)=\tfrac{z-w_t+a}{2a}$$
  Numera la lista de números: $u_1,u_2,\dots$ y apunta qué apartado gasta cuáles.</li>
 <li><b>Paso 1 — Muestrear con CDF inversa</b>: $F(x)=\int_{-\infty}^xp$, resuelve $F(x)=u$.
  <table><tr><th>pdf</th><th>$F(x)$</th><th>$x=F^{-1}(u)$</th><th>salió en</th></tr>
@@ -141,7 +141,7 @@ const flash = [
   { cat: "CDF", front: "Triangular en $(3,7)$, pico en 5", back: "$k=\\tfrac14$ (área $4k=1$). $u\\le.5$: $x=3+\\sqrt{8u}$; $u>.5$: $x=7-\\sqrt{8(1-u)}$. $u=.125\\to4$, $.875\\to6$ (ene-2026)." },
   { cat: "CDF", front: "Transición nov-2025: $\\frac{0.5}{p}$ en $[0,p]$, $\\frac{0.5}{1-p}$ en $(p,1]$", back: "$F(p)=0.5$. $u<.5$: $x=2up$; $u\\ge.5$: $x=p+(2u-1)(1-p)$. $p=.81,u=.7\\to.886$." },
   { cat: "CDF", front: "Discreta (habitaciones, ±1, rejilla)", back: "Acumula en el orden indicado y elige el primer valor con $u\\le F$. Usa la FILA del estado anterior de esa partícula. Uniforme en $\\{0..9\\}$: $\\lfloor10u\\rfloor$." },
-  { cat: "Pesos", front: "Medida uniforme $\\pm a$: pesos", back: "$\\tfrac1{2a}$ si $|z-x|<a$, si no 0 ⇒ tras normalizar, iguales entre las supervivientes (nov-2024: $.5,.5,0$)." },
+  { cat: "Pesos", front: "Medida uniforme $\\pm a$: pesos", back: "$\\tfrac1{2a}$ si $|z-x|\\lt a$, si no 0 ⇒ tras normalizar, iguales entre las supervivientes (nov-2024: $.5,.5,0$)." },
   { cat: "Pesos", front: "Mezcla 0.9 inlier $U(\\pm1)$ + 0.1 spurious $1<|v|<4$", back: "Alturas $0.9/2=0.45$ y $0.1/6\\approx0.0167$; fuera 0 (2023: $1/28,27/28$)." },
   { cat: "Pesos", front: "$y=x^2+u$, $p(u)=ku^2$ en $(-.5,.5)$, $y=0$", back: "Evalúa en $u=y-x^2$: $x=\\pm.2\\Rightarrow k(.04)^2$; $x=0\\Rightarrow p(0)=0$ ¡muere la 'mejor'!; $x=\\pm.8$ fuera. $k$ se cancela." },
   { cat: "Pesos", front: "Detector: $P_D=0.9$, $P_{FA}=0.05$, NO detecta", back: "Partícula en la habitación del robot: $0.1$; en otra: $0.95$ (2020: $2/23,2/23,19/23$)." },
@@ -200,7 +200,7 @@ const exams = [
   statement: R`Uniforms: $\{.5,.6,.4,.6,.5,.9,.2,.5,.9,.8,.3,\dots\}$. Estimate $p(X_t,W_t)$ (power, wind) with 3 particles. $Z_t$ uniform around true wind $\pm0.1$. Wind: uniform around previous $\pm1$. Power $=W_t^3$ with uniform noise $\pm10$, no inertia.<br>(a,1p) Models for $W_t$. (b,1p) $Z_0=10$, uninformed prior: $w_0^{(i)}$. (c,2p) $w_1^{(i)}$. (d,1p) $(w_1^{(i)},x_1^{(i)})$ without computing completely. (e,2p) $Z_1=10.11$: normalized weights. (f,2p) $E[X_1]$. (g,2p) Systematic resampling.`,
   tags: "prior desde la medida → propagar → variable sin inercia → pesos uniformes → E → sistemático",
   steps: [
-    ["(a) Modelos", R`$p(z_t|w_t)=5$ en $(w_t\pm.1)$, $P(Z_t<z|w_t)=5(z-w_t+.1)$. $p(w_t|w_{t-1})=.5$ en $(w_{t-1}\pm1)$, $P(W_t<w|w_{t-1})=.5(w-w_{t-1}+1)$. ⚠ La oficial escribe el soporte de la CDF como $(W_{t-1},W_{t-1}+1)$: es $(W_{t-1}-1,W_{t-1}+1)$.`],
+    ["(a) Modelos", R`$p(z_t|w_t)=5$ en $(w_t\pm.1)$, $P(Z_t\lt z|w_t)=5(z-w_t+.1)$. $p(w_t|w_{t-1})=.5$ en $(w_{t-1}\pm1)$, $P(W_t\lt w|w_{t-1})=.5(w-w_{t-1}+1)$. ⚠ La oficial escribe el soporte de la CDF como $(W_{t-1},W_{t-1}+1)$: es $(W_{t-1}-1,W_{t-1}+1)$.`],
     ["(b) Prior desde $Z_0$", R`Prior plano ⇒ $W_0\sim U(9.9,10.1)$, $u=5(w-9.9)$ ⇒ $w=9.9+0.2u$: $.5,.6,.4\to10.00,\ 10.02,\ 9.98$.`],
     ["(c) Propagar", R`$u=.5(w_1-w_0+1)$ ⇒ $w_1=w_0-1+2u$: $.6,.5,.9\to10.20,\ 10.02,\ 10.78$.`],
     ["(d) Potencia", R`$x=w^3-10+20u$: $.2,.5,.9$ ⇒ $(10.20,\ (10.20)^3-6)$, $(10.02,\ (10.02)^3)$, $(10.78,\ (10.78)^3+8)$.`],
