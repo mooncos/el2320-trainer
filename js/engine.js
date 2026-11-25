@@ -1,45 +1,53 @@
-// Exact rational arithmetic + small-matrix linear algebra + KF/EKF solvers.
-// Everything is exact (fractions) so the solutions look like the official answers (e.g. 25/33).
+// Shared by all parts: exact rational arithmetic, small-matrix linear algebra, KF/EKF solvers, answer checking.
+// Everything is exact (fractions) so the solutions look like the official answers (e.g. 25/33, 2/23).
 "use strict";
 
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+const bgcd = (a, b) => { if (a < 0n) a = -a; if (b < 0n) b = -b; while (b) [a, b] = [b, a % b]; return a || 1n; };
+function gcd(a, b) { return Number(bgcd(BigInt(a), BigInt(b))); }
 
+// BigInt internally: PF cubes and long products of 2-decimal numbers overflow 2^53 quickly.
 class F {
   constructor(n, d = 1) {
-    if (d === 0) throw new Error("division by zero");
-    if (!Number.isInteger(n) || !Number.isInteger(d)) {
-      // fall back to a decimal approximation turned into a fraction (should not happen in generators)
-      const s = 1e6; n = Math.round((n / d) * s); d = s;
+    if (typeof n === "number" && !Number.isInteger(n) || typeof d === "number" && !Number.isInteger(d)) {
+      // decimal input: approximate as a fraction over 1e6 (generators normally pass integers)
+      n = Math.round((Number(n) / Number(d)) * 1e6); d = 1e6;
     }
-    if (d < 0) { n = -n; d = -d; }
-    const g = gcd(n, d);
-    this.n = n / g; this.d = d / g;
+    n = BigInt(n); d = BigInt(d);
+    if (d === 0n) throw new Error("division by zero");
+    if (d < 0n) { n = -n; d = -d; }
+    const g = bgcd(n, d);
+    this.N = n / g; this.D = d / g;
   }
+  get n() { return Number(this.N); }
+  get d() { return Number(this.D); }
   static of(x) { return x instanceof F ? x : new F(x, 1); }
-  add(o) { o = F.of(o); return new F(this.n * o.d + o.n * this.d, this.d * o.d); }
-  sub(o) { o = F.of(o); return new F(this.n * o.d - o.n * this.d, this.d * o.d); }
-  mul(o) { o = F.of(o); return new F(this.n * o.n, this.d * o.d); }
-  div(o) { o = F.of(o); return new F(this.n * o.d, this.d * o.n); }
-  neg() { return new F(-this.n, this.d); }
+  add(o) { o = F.of(o); return new F(this.N * o.D + o.N * this.D, this.D * o.D); }
+  sub(o) { o = F.of(o); return new F(this.N * o.D - o.N * this.D, this.D * o.D); }
+  mul(o) { o = F.of(o); return new F(this.N * o.N, this.D * o.D); }
+  div(o) { o = F.of(o); return new F(this.N * o.D, this.D * o.N); }
+  neg() { return new F(-this.N, this.D); }
   pow(k) { let r = new F(1); for (let i = 0; i < k; i++) r = r.mul(this); return r; }
-  isZero() { return this.n === 0; }
-  val() { return this.n / this.d; }
-  eq(o) { o = F.of(o); return this.n === o.n && this.d === o.d; }
+  isZero() { return this.N === 0n; }
+  val() { return Number(this.N) / Number(this.D); }
+  eq(o) { o = F.of(o); return this.N === o.N && this.D === o.D; }
   isSquare() { // perfect square rational -> sqrt as F, else null
-    if (this.n < 0) return null;
+    if (this.N < 0n) return null;
     const a = Math.round(Math.sqrt(this.n)), b = Math.round(Math.sqrt(this.d));
-    return a * a === this.n && b * b === this.d ? new F(a, b) : null;
+    return BigInt(a * a) === this.N && BigInt(b * b) === this.D ? new F(a, b) : null;
   }
+  // exact fraction; parts may set F.maxTexDen to print unreadable fractions as decimals instead
   tex() {
-    if (this.d === 1) return String(this.n);
-    const s = this.n < 0 ? "-" : "";
-    return `${s}\\tfrac{${Math.abs(this.n)}}{${this.d}}`;
+    if (this.D === 1n) return String(this.N);
+    if (this.D > F.maxTexDen) return this.dec(4);
+    const s = this.N < 0n ? "-" : "";
+    return `${s}\\tfrac{${this.N < 0n ? -this.N : this.N}}{${this.D}}`;
   }
-  str() { return this.d === 1 ? String(this.n) : `${this.n}/${this.d}`; }
+  str() { return this.D === 1n ? String(this.N) : `${this.N}/${this.D}`; }
   dec(p = 4) { const v = this.val(); return Number.isInteger(v) ? String(v) : (+v.toFixed(p)).toString(); }
   // tex with decimal hint when the fraction is ugly
   texH() { return this.d === 1 || this.d > 1000 ? this.tex() : `${this.tex()}\\approx ${this.dec(3)}`; }
 }
+F.maxTexDen = Infinity;
 const f = (n, d = 1) => new F(n, d);
 
 // ---------- matrices: arrays of arrays of F ----------
@@ -89,7 +97,7 @@ function parseNum(s) {
   return NaN;
 }
 function close(user, truth) {
-  const t = truth instanceof F ? truth.val() : truth;
+  const t = typeof truth === "number" ? truth : truth.val();
   if (!isFinite(user)) return false;
   return Math.abs(user - t) <= 2e-3 * Math.max(1, Math.abs(t)) + 1e-9;
 }

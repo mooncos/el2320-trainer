@@ -1,13 +1,26 @@
 "use strict";
-(() => {
+// Shared app for every exam part. The URL hash is "#<part>/<tab>" (e.g. #p3/entreno); the selected part's
+// generators.js + content.js are loaded on demand and define window.Gens / window.CONTENT.
+const PARTS = { p2: "Parte II · KF / EKF", p3: "Parte III · Particle Filter" };
+const DEFAULT_PART = "p3";
+const parseHash = () => { const [p, t] = location.hash.slice(1).split("/"); return PARTS[p] ? { part: p, tab: t } : { part: null, tab: p }; };
+const PART = parseHash().part || localStorage.getItem("el2320:part") || DEFAULT_PART;
+localStorage.setItem("el2320:part", PART);
+const loadScript = src => new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => fail(new Error("no se pudo cargar " + src)); document.head.append(s); });
+window.addEventListener("DOMContentLoaded", () =>
+  loadScript(`parts/${PART}/generators.js`).then(() => loadScript(`parts/${PART}/content.js`)).then(start)
+    .catch(e => { document.querySelector("main").textContent = e.message; }));
+
+function start() {
 const { parseNum, close } = window.Eng;
 const C = window.CONTENT;
 const $ = (s, el = document) => el.querySelector(s);
 const h = (tag, attrs = {}, html = "") => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v); } if (html) e.innerHTML = html; return e; };
 const tex = el => { if (window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }], throwOnError: false }); return el; };
+// per-part prefix ("el2320p2:", "el2320p3:") keeps the progress saved by the old single-part sites
 const store = {
-  get(k, d) { try { return JSON.parse(localStorage.getItem("el2320p2:" + k)) ?? d; } catch { return d; } },
-  set(k, v) { localStorage.setItem("el2320p2:" + k, JSON.stringify(v)); updateProgress(); },
+  get(k, d) { try { return JSON.parse(localStorage.getItem(`el2320${PART}:` + k)) ?? d; } catch { return d; } },
+  set(k, v) { localStorage.setItem(`el2320${PART}:` + k, JSON.stringify(v)); updateProgress(); },
 };
 
 const TABS = [
@@ -15,14 +28,22 @@ const TABS = [
   ["entreno", "🎯 Entrenador"], ["teoria", "🃏 Flashcards"], ["quiz", "❓ Quiz"], ["check", "✅ Checklist"],
 ];
 const main = $("main");
-function nav() {
+let current = null;
+function header() {
+  document.title = `EL2320 · ${C.ui.title} · trainer`;
+  const sel = $("#part"); sel.innerHTML = "";
+  for (const [p, label] of Object.entries(PARTS)) sel.append(h("option", { value: p }, label));
+  sel.value = PART;
+  sel.onchange = () => { location.hash = `${sel.value}/${current || "inicio"}`; };   // hashchange handler reloads into the new part
   const n = $("nav"); n.innerHTML = "";
   for (const [id, label] of TABS) n.append(h("button", { "data-tab": id, onclick: () => go(id) }, label));
 }
 function go(id) {
-  location.hash = id;
+  if (!VIEWS[id]) id = "inicio";
+  current = id;
+  history.replaceState(null, "", `#${PART}/${id}`);
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
-  main.innerHTML = ""; (VIEWS[id] || VIEWS.inicio)(); tex(main); window.scrollTo(0, 0);
+  main.innerHTML = ""; VIEWS[id](); tex(main); window.scrollTo(0, 0);
 }
 function updateProgress() {
   const fc = store.get("fc", {}); const known = Object.values(fc).filter(b => b >= 3).length;
@@ -53,19 +74,19 @@ const VIEWS = {
 
   // ---------------------------------------------------------------- past exams: step reveal
   examenes() {
-    main.innerHTML = `<h2>📝 Todas las preguntas de Parte II (2018 → 2026)</h2>
-      <p class="muted">Método: lee el enunciado, <b>resuélvelo en papel</b> y luego revela un paso cada vez, comparándolo con lo tuyo. Los pasos marcados con ⚠ son donde se pierden puntos. Marca "Hecha" cuando la hayas resuelto sin mirar.</p>`;
+    main.innerHTML = `<h2>${C.ui.examTitle}</h2>
+      <p class="muted">Método: lee el enunciado, <b>resuélvelo en papel</b> y luego revela un paso cada vez, comparándolo con lo tuyo. Los pasos marcados con ⚠ son donde se pierden puntos (o erratas de la solución oficial). Marca "Hecha" cuando la hayas resuelto sin mirar.</p>`;
     const filt = h("div", { class: "card tight" });
-    const sel = h("select"); [["all", "Todas"], ["kf", "Solo KF"], ["ekf", "Solo EKF/linealización"], ["th", "Solo teoría"], ["p2", "Solo exámenes Part II (formato de mañana)"]].forEach(([v, l]) => sel.append(h("option", { value: v }, l)));
+    const sel = h("select"); C.ui.filters.forEach(([v, l]) => sel.append(h("option", { value: v }, l)));
     filt.append(h("span", {}, "Filtro: "), sel); main.append(filt);
     const list = h("div"); main.append(list);
     const done = store.get("exdone", {});
     const render = () => {
       list.innerHTML = "";
       for (const ex of C.exams) {
-        if (sel.value === "p2" ? !ex.part2 : sel.value !== "all" && ex.type !== sel.value) continue;
+        if (sel.value === "featured" ? !ex.featured : sel.value !== "all" && ex.type !== sel.value) continue;
         const d = h("details", { class: "card exq" });
-        d.append(h("summary", {}, `${done[ex.id] ? "✅ " : ""}<span class="pill ${ex.type}">${ex.type.toUpperCase()}</span> ${ex.id} — ${ex.title} <span class="muted small">(${ex.pts})</span>`));
+        d.append(h("summary", {}, `${done[ex.id] ? "✅ " : ""}<span class="pill ${ex.type}">${C.ui.pill[ex.type] || ex.type.toUpperCase()}</span> ${ex.id} — ${ex.title} <span class="muted small">(${ex.pts})</span>`));
         const body = h("div");
         body.append(h("div", {}, ex.statement));
         if (ex.tags) body.append(h("p", { class: "small muted" }, "Patrón: " + ex.tags));
@@ -95,13 +116,13 @@ const VIEWS = {
   // ---------------------------------------------------------------- generator
   entreno() {
     main.innerHTML = `<h2>🎯 Entrenador infinito</h2>
-      <p class="muted">Problemas nuevos cada vez, con el mismo formato que los exámenes de Parte II. Rellena cada paso (acepta fracciones <kbd>25/33</kbd> o decimales, tolerancia ±0.2%) y pulsa <b>Comprobar</b>. Si fallas: <b>Pista</b> te da la regla de la receta, <b>Solución</b> el desarrollo completo. Objetivo esta noche: 2 problemas seguidos de cada tipo sin pistas.</p>`;
+      <p class="muted">${C.ui.trainerIntro} Si fallas: <b>Pista</b> te da la regla de la receta, <b>Solución</b> el desarrollo completo. Objetivo: 2 problemas seguidos de cada tipo sin pistas.</p>`;
     const bar = h("div", { class: "card tight" });
     const sel = h("select"); for (const [k, g] of Object.entries(window.Gens)) if (!k.startsWith("_")) sel.append(h("option", { value: k }, g.name));
     sel.append(h("option", { value: "mix" }, "🎲 Mezcla aleatoria"));
     const newBtn = h("button", { class: "btn" }, "Nuevo problema");
     bar.append(h("span", {}, "Tipo: "), sel, " ", newBtn);
-    const showModel = h("label", { class: "small", style: "margin-left:10px" }); const cbm = h("input", { type: "checkbox" }); showModel.append(cbm, " mostrar modelo en matrices (más fácil)");
+    const showModel = h("label", { class: "small", style: "margin-left:10px" }); const cbm = h("input", { type: "checkbox" }); showModel.append(cbm, " " + C.ui.modelLabel);
     bar.append(showModel); main.append(bar);
     const area = h("div"); main.append(area);
     const stats = store.get("train", { ok: 0, tot: 0 });
@@ -113,7 +134,7 @@ const VIEWS = {
       area.append(h("div", { class: "card" }, `<h3 style="margin-top:0">${P.title}</h3><div>${P.statement}</div>`));
       const model = h("div", { class: "key", style: cbm.checked ? "" : "display:none" }, "<b>Modelo:</b> " + P.model);
       area.append(model); cbm.onchange = () => { model.style.display = cbm.checked ? "" : "none"; };
-      const before = h("div", { class: "small muted" }, "Antes de calcular: escribe en papel estado, $g$/$A$, $R$, $h$/$C$, $Q$, $\\mu_0$, $\\Sigma_0$. (Marca la casilla de arriba para comprobarlo.)");
+      const before = h("div", { class: "small muted" }, C.ui.before);
       area.append(before);
       P.steps.forEach((s, i) => {
         const st = h("div", { class: "step" });
@@ -130,7 +151,8 @@ const VIEWS = {
           let ok = 0;
           for (const [inp, fd] of inputs) { const good = close(parseNum(inp.value), fd.truth); inp.classList.toggle("ok", good); inp.classList.toggle("bad", !good); ok += good; }
           stats.tot += inputs.length; stats.ok += ok; store.set("train", stats);
-          msg.innerHTML = ok === inputs.length ? `<span style="color:var(--ok)">✔ Todo correcto</span>` : `<span style="color:var(--bad)">${inputs.length - ok} mal</span> — revisa los rojos (¿std vs varianza? ¿Jacobiano en el punto correcto? ¿signo de η?)`;
+          msg.innerHTML = ok === inputs.length ? `<span style="color:var(--ok)">✔ Todo correcto</span>` : `<span style="color:var(--bad)">${inputs.length - ok} mal</span> — revisa los rojos (${C.ui.errHint})`;
+          tex(msg);
         };
         const hintBox = h("div", { class: "hint", style: "display:none" }, s.hint);
         const solBox = h("div", { class: "sol", style: "display:none" }, s.sol + `<div class="small muted">Valores: ${s.fields.map(fd => `$${fd.label}=${fd.truth.tex()}$${fd.truth.d !== 1 ? ` (${fd.truth.dec(4)})` : ""}`).join(", ")}</div>`);
@@ -173,7 +195,7 @@ const VIEWS = {
     };
     const grade = ok => { fc[cur.i] = ok ? Math.min(3, (fc[cur.i] || 0) + 1) : 1; store.set("fc", fc); nextCard(); };
     cardEl.onclick = () => { flipped = true; draw(); };
-    const key = e => { if (location.hash !== "#teoria") return document.removeEventListener("keydown", key); if (e.code === "Space") { e.preventDefault(); flipped = true; draw(); } else if (flipped && e.key === "1") grade(false); else if (flipped && e.key === "2") grade(true); };
+    const key = e => { if (current !== "teoria") return document.removeEventListener("keydown", key); if (e.code === "Space") { e.preventDefault(); flipped = true; draw(); } else if (flipped && e.key === "1") grade(false); else if (flipped && e.key === "2") grade(true); };
     document.addEventListener("keydown", key);
     sel.onchange = nextCard; reset.onclick = () => { for (const k in fc) delete fc[k]; store.set("fc", fc); nextCard(); };
     nextCard();
@@ -197,8 +219,12 @@ const VIEWS = {
   },
 };
 
-nav();
+header();
 updateProgress();
-go((location.hash || "#inicio").slice(1));
-window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (!document.querySelector(`nav button[data-tab="${id}"].active`)) go(id); });
-})();
+go(parseHash().tab || "inicio");
+window.addEventListener("hashchange", () => {
+  const { part, tab } = parseHash();
+  if (part && part !== PART) { localStorage.setItem("el2320:part", part); location.reload(); return; }
+  if (tab !== current) go(tab);
+});
+}

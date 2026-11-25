@@ -218,7 +218,7 @@ const quiz = [
 
 // ---------------------------------------------------------------- past exams
 const exams = [
-{ id: "2025-11-20 Q1", part2: true, type: "kf", pts: "5p", title: "KF (x,v), inicio exacto, medida 2x+v",
+{ id: "2025-11-20 Q1", featured: true, type: "kf", pts: "5p", title: "KF (x,v), inicio exacto, medida 2x+v",
   statement: R`$X_0=0$, $V_0=1$ <b>exactly</b>. $E[X_t]=x_{t-1}+v_{t-1}$, $E[V_t]=v_{t-1}$. Process noise $\sigma^2_{xx}=4$, $\sigma^2_{vv}=1$, $\sigma^2_{xv}=0$. $p(z_t|x_t,v_t)$ Gaussian with mean $2x_t+v_t$ and <b>standard deviation 4</b>.<br>(a,1p) Belief at $t=1$? (b,2p) $Z_1=2$: belief after the measurement? (c,2p) Belief at $t=2$?`,
   tags: "inicio exacto ⇒ predict / update / predict",
   steps: [
@@ -228,7 +228,7 @@ const exams = [
    ["(b) Resultado", R`$\mu_1=(1,1)-\tfrac1{33}(8,1)=(\tfrac{25}{33},\tfrac{32}{33})$, $\Sigma_1=\bar\Sigma-\mathbf s\mathbf s^T/33=\tfrac1{33}\begin{pmatrix}68&-8\\-8&32\end{pmatrix}$.`],
    ["(c) Predict t=2", R`$\bar\mu_2=A\mu_1=(\tfrac{57}{33},\tfrac{32}{33})$. Atajo: $A\Sigma_1A^T=\tfrac1{33}\begin{pmatrix}68-16+32&-8+32\\ \cdot&32\end{pmatrix}=\tfrac1{33}\begin{pmatrix}84&24\\24&32\end{pmatrix}$, $+R$: $\bar\Sigma_2=\tfrac1{33}\begin{pmatrix}216&24\\24&65\end{pmatrix}$.`]],
   traps: R`$Q=4$ en vez de 16; olvidar que $\Sigma_1$ ya tiene término cruzado (−8/33) en (c).` },
-{ id: "2025-11-20 Q2", part2: true, type: "ekf", pts: "7p", title: "EKF: g con v², h = 1/(x²+v²+1)",
+{ id: "2025-11-20 Q2", featured: true, type: "ekf", pts: "7p", title: "EKF: g con v², h = 1/(x²+v²+1)",
   statement: R`$X_0=0,V_0=0$ exactly. $E[X_t]=x_{t-1}+v_{t-1}^2+1$, $E[V_t]=v_{t-1}$. $\sigma^2_{xx}=2,\sigma^2_{vv}=1,\sigma^2_{xv}=0$. Mean of $Z_t$ is $\dfrac1{x_t^2+v_t^2+1}$, <b>variance</b> ½.<br>(a,2p) Belief at $t=1$? (b,3p) $Z_1=1$: belief after it? (c,2p) Belief at $t=2$?`,
   tags: "EKF inicio exacto; Jacobianos con ceros en v=0",
   steps: [
@@ -239,7 +239,7 @@ const exams = [
    ["(c) Predict t=2", R`$G$ en $\mu_1=(\tfrac12,0)$: $2v=0\Rightarrow G=I$. $\bar\mu_2=(\tfrac12+0+1,0)=(\tfrac32,0)$, $\bar\Sigma_2=I+R=\mathrm{diag}(3,2)$.`],
    ["Extra (teoría)", R`$v=0$ anula todas las derivadas en $v$: el EKF ignora $v$. La verdad (Monte Carlo): $E[X_2]=2.5$, $\mathrm{Var}X_2=5$ ⇒ el EKF subestima media y varianza. Buen ejemplo de "cuándo falla el EKF".`]],
   traps: R`Olvidar el cuadrado del denominador en $H$; evaluar $H$ en $\mu_0$; perder el $+1$ de $g$; $K<0$ es correcto.` },
-{ id: "2024-11-21 Q1", part2: true, type: "kf", pts: "5p", title: "KF parque eólico: init desde medida, steady state, ρ",
+{ id: "2024-11-21 Q1", featured: true, type: "kf", pts: "5p", title: "KF parque eólico: init desde medida, steady state, ρ",
   statement: R`State $(W,X)$. Wind measured with std 0.1. Wind: Gaussian around previous, std 1.0. Power: linear, factor −3 on $x_{t-1}$, 4 on $w_{t-1}$, noise variance 1. $Z_0=10$ gives $w_0$.<br>(a) Var of $W_0$? (b) $x_0$ (steady state)? (c) Power variance .04, $\rho=0.5$: $\Sigma_0$? (d) Predicted distribution $t=1$? (e) $Z_1=9$: updated belief?`,
   tags: "variante 'inicializa desde medida'",
   steps: [
@@ -250,7 +250,7 @@ const exams = [
    ["(e) Update", R`$C=(1,0)$, $Q=0.01$, $\eta=-1$, $\mathbf s=(1.01,0.01)$, $S=1.02$, $K=\tfrac1{1.02}(1.01,0.01)$.`],
    ["(e) Resultado", R`$\mu_1=(10-\frac{1.01}{1.02},\ 10-\frac{0.01}{1.02})=(\tfrac{919}{102},\tfrac{1019}{102})$. $\Sigma_1=\tfrac1{1.02}\begin{pmatrix}0.0101&0.0001\\0.0001&1.02\cdot1.28-0.0001\end{pmatrix}$.`]],
   traps: R`$\rho\sigma\sigma$ con varianzas; orden del estado inconsistente; la oficial escribe $\mu_0+K\eta$ (correcto solo porque $\bar\mu_1=\mu_0$): tú escribe $\bar\mu_1+K\eta$.` },
-{ id: "2024-11-21 Q2", part2: true, type: "ekf", pts: "7p", title: "EKF parque eólico: Z = W², cúbica",
+{ id: "2024-11-21 Q2", featured: true, type: "ekf", pts: "7p", title: "EKF parque eólico: Z = W², cúbica",
   statement: R`$Z_t=W_t^2+\eta_t$, std 2. Wind: Gaussian around previous, std 1. $X_t=X_{t-1}+2(W_{t-1}-2X_{t-1})^3+\epsilon_t$, var 1. $Z_0=100$.<br>(a,1p) Var of $W_0$? (b) $x_0$? (c) Power var .01, no correlations: $\Sigma_0$? (d,2p) $g,h$? (e,1p) Predicted at $t=1$? (f,2p) $Z_1=81$: innovation, $K$, mean?`,
   tags: "init vía inversa + Jacobiano; G = I en steady state",
   steps: [
@@ -362,5 +362,17 @@ const exams = [
    ["ML data association", R`$\arg\max_c p(z|x,c)$ = mínima Mahalanobis.`]] },
 ];
 
-window.CONTENT = { home, recipe, dict, checklist, flash, quiz, exams };
+// part-specific wording for the shared app.js
+const ui = {
+  title: "Parte II · KF / EKF",
+  examTitle: "📝 Todas las preguntas de Parte II (2018 → 2026)",
+  filters: [["all", "Todas"], ["kf", "Solo KF"], ["ekf", "Solo EKF/linealización"], ["th", "Solo teoría"], ["featured", "Solo exámenes Part II (formato del examen)"]],
+  pill: {},
+  trainerIntro: R`Problemas nuevos cada vez, con el mismo formato que los exámenes de Parte II. Rellena cada paso (acepta fracciones <kbd>25/33</kbd> o decimales, tolerancia ±0.2%) y pulsa <b>Comprobar</b>.`,
+  modelLabel: "mostrar modelo en matrices (más fácil)",
+  before: R`Antes de calcular: escribe en papel estado, $g$/$A$, $R$, $h$/$C$, $Q$, $\mu_0$, $\Sigma_0$. (Marca la casilla de arriba para comprobarlo.)`,
+  errHint: R`¿std vs varianza? ¿Jacobiano en el punto correcto? ¿signo de $\eta$?`,
+};
+
+window.CONTENT = { ui, home, recipe, dict, checklist, flash, quiz, exams };
 })();
